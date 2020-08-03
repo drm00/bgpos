@@ -1,0 +1,19 @@
+\documentclass{scrartcl}
+% from the fontspec documentation: 4.2 Specifically choosing the NFSS family
+\usepackage{fontspec}
+\usepackage{fancyvrb}
+\fvset{fontfamily=myverbatimfont}
+\newfontfamily\verbatimfont[NFSSFamily=myverbatimfont]{eXtreme Gammon}
+% create a new verbatim environment that uses the gammon font (with its new name)
+\DefineVerbatimEnvironment{board}{Verbatim}{%
+  formatcom={\baselineskip=-\maxdimen\lineskip=0pt},
+  fontfamily=myverbatimfont
+}
+
+% crop the pdf to the content
+% https://tex.stackexchange.com/questions/31973/latex-how-do-i-force-pdf-page-height-width
+\usepackage[paperwidth=\textwidth,paperheight=\textheight,text={\textwidth,\textheight}]{geometry}
+
+\begin{document}
+__POSITIONS__
+\end{document}
