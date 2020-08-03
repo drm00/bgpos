@@ -1,0 +1,4 @@
+TexLive with lualatex (e.g. TeXLive 2019)
+ImageMagick (convert)
+eXtreme Gammon Font (http://extremegammon.com/font.aspx), installed into ~/.fonts
+python3 with BeautifulSoup
