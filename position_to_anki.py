@@ -70,9 +70,13 @@ def delete_latex_files(filename):
     os.remove(f"{filename}.log")
     os.remove(f"{filename}.aux")
 
+def positions_to_anki(positions):
+    print(positions)
+    print('TODO')
+
 if __name__ == '__main__':
-    if len(sys.argv) <= 1:
-        print(f"USAGE: {sys.argv[0]} <Position.html> [<position.html>, ...]")
+    if len(sys.argv) <= 2:
+        print(f"USAGE: {sys.argv[0]} <position1.html> [<position2.html>, ...]")
         sys.exit(1)
 
     PREFIX = '501-essential-backgammon-problems'
@@ -86,7 +90,7 @@ if __name__ == '__main__':
 
         with open(f) as fh:
             html_doc = fh.read()
-            problem_number = int(f.strip('.html'))
+            problem_number = int(os.path.basename(f).strip('.html'))
             soup = BeautifulSoup(html_doc, 'html.parser')
 
             positions.append(get_position(soup))
@@ -104,11 +108,6 @@ if __name__ == '__main__':
     print(tempfile)
 
     for problem_number in problems.keys():
-        problems[problem_number]['image'] = '{PNG_OUTPUT_DIR}/{PREFIX}-{problem_number}.png'
+        problems[problem_number]['image'] = f"{PNG_OUTPUT_DIR}/{PREFIX}-{problem_number}.png"
 
-    print(problems)
-
-
-
-#analysis = soup.find_all('table')[2]
-#print(analysis)
+    positions_to_anki(problems)
