@@ -80,11 +80,12 @@ def positions_to_anki(positions, output_dir):
         sys.exit(1)
     if not os.path.exists(output_dir):
         os.mkdir(output_dir)
-    for number, position in positions.items():
-        with open(f"{output_dir}/{number}.txt", 'w', newline='') as csvfile:
-            # \t is the separator between front and back
-            cardwriter = csv.writer(csvfile, delimiter='\t', quotechar='"', quoting=csv.QUOTE_ALL)
 
+    with open(f"{output_dir}/anki-cards.txt", 'w', newline='') as csvfile:
+        # \t is the separator between front and back
+        cardwriter = csv.writer(csvfile, delimiter='\t', quotechar='"', quoting=csv.QUOTE_ALL)
+
+        for position in positions:
             cardwriter.writerow([
                 f"""<img src="{position['image']}">""",
                 f"""<center>{position['title']} - Best move: {position['best']}</center><br>
@@ -102,7 +103,7 @@ if __name__ == '__main__':
     PNG_OUTPUT_DIR = 'png'
     CARD_OUTPUT_DIR = 'cards'
     positions = []
-    problems = {}
+    problems = []
     
     for f in sys.argv[1:]:
         if not f.endswith('.html'):
@@ -114,22 +115,22 @@ if __name__ == '__main__':
             soup = BeautifulSoup(html_doc, 'html.parser')
 
             positions.append(get_position(soup))
-            problems[problem_number] = {
+            problems.append({
                 'image': '',
                 'analysis': get_analysis(soup),
                 'best': get_best_move(soup),
                 'xgid': get_xgid(soup),
                 'title': f"Problem {problem_number}",
                 'tags': 'TODO'
-            }
+            })
 
     tex = positions_to_tex(positions)
     tempfile = tex_to_pdf(tex)
     pdf_to_png(tempfile, PNG_OUTPUT_DIR, PREFIX)
     delete_latex_files(tempfile)
 
-    for problem_number in problems.keys():
-        problems[problem_number]['image'] = f"{PREFIX}-{problem_number}.png"
+    for i, problem in enumerate(problems, start=1):
+        problem['image'] = f"{PREFIX}-{i}.png"
 
     positions_to_anki(problems, CARD_OUTPUT_DIR)
     print('move pngs into collection.media: ~/.local/share/Anki2/<User>/collection.media/')
