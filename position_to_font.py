@@ -124,14 +124,30 @@ def set_cube(value, position, board):
 
 def set_turn(turn, dice, board):
     turn = int(turn)
+    if len(dice) == 1:
+        if dice == 'D':
+            # player has doubled
+            pass
+        elif dice == 'B':
+            # player has doubled, opp. has beavered
+            pass
+        elif dice == 'R':
+            # player has doubled, opp. has beavered, player racconed
+            pass
+        return
+
     roll1, roll2 = dice[0], dice[1]
 
-    row = 6 
+    if roll1 == '0' and roll2 == '0':
+        # player is to roll or double
+        return
+
+    row = 6
     if turn == 1:
         # bottom players turn, right side of the board
         col1, col2 = 12, 15
-        roll1 = chr(int(int('0x37', 16) + int(roll1)))
-        roll2 = chr(int(int('0x37', 16) + int(roll2)))
+        roll1 = chr(int('0x37', 16) + int(roll1))
+        roll2 = chr(int('0x37', 16) + int(roll2))
     else:
         # top players turn, left side of the board
         col1, col2 = 3, 6
@@ -161,6 +177,72 @@ def set_bearoff(checkers, board):
         board[row+(full*direction)][18] = chr(int('0xE6', 16) + diff + (5-part))
 
 
+def XG_validate_id(id):
+    s = id.split(':')
+    points = s[0]
+    setup = s[1:]
+
+    if len(points) != 26:
+        return False
+
+    for c in points:
+        if c.lower() not in '-abcdefg':
+            return False
+
+    try:
+        cube_value = int(setup[0])
+        if cube_value not in range(10):
+            return False
+
+        cube_position = int(setup[1])
+        if cube_position not in [1, 0, -1]:
+            return False
+
+        turn = int(setup[2])
+        if turn not in [1, -1]:
+            return False
+
+        roll = setup[3]
+        if len(roll) == 1:
+            if roll not in ['D', 'B', 'R']:
+                return False
+        elif len(roll) == 2:
+            if roll == '00':
+                pass
+            else:
+                roll1, roll2 = int(roll[0]), int(roll[1])
+                if roll1 not in range(1, 7):
+                    return False
+                if roll2 not in range(1, 7):
+                    return False
+
+        score1 = int(setup[4])
+        if score1 < 0:
+            return False
+
+        score2 = int(setup[5])
+        if score2 < 0:
+            return False
+
+        crawford_jacoby = int(setup[6])
+        match_length = int(setup[7])
+
+        if match_length == 0:
+            # unlimited game
+            if crawford_jacoby not in range(4):
+                return False
+        else:
+            # match game
+            if crawford_jacoby not in range(2):
+                return False
+
+        max_cube = int(setup[8])
+
+    except:
+        return False
+
+    return True
+
 if __name__ == "__main__":
     print(sys.argv)
     if len(sys.argv) != 2:
@@ -174,7 +256,9 @@ if __name__ == "__main__":
         print("GnuBG-IDs not supported yet")
         sys.exit(0)
 
-    print(len(id))
+    if not XG_validate_id(id):
+        print("ID not valid!")
+        sys.exit(1)
 
     # board positions 1-24
     checkers = [0, 0] # top, bottom player
@@ -193,7 +277,7 @@ if __name__ == "__main__":
     checkers[1] = 15 - checkers[1]
     set_bearoff(checkers, board)
 
-    cube_value, cube_position, turn, dice, score1, score2, crawford_jacoby, match_length, max_cube = XGID[27:].split(':')
+    cube_value, cube_position, turn, dice, score1, score2, crawford_jacoby, match_length, max_cube = id[27:].split(':')
     set_cube(cube_value, cube_position, board)
     set_turn(turn, dice, board)
 
