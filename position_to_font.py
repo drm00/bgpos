@@ -1,12 +1,14 @@
 #!/usr/bin/env python3
 
+import sys
+
 # gnubg position id has 14 characters
 # extreme gammon position id has 51 characters (?)
 
 XGID = '-a-B--E-B-a-dDB--b-bcb----:1:1:-1:63:0:0:0:3:8'
 XGID = '-b--B-C-CA-AdC-a-c-e-A--A-:3:-1:1:62:0:0:3:0:10'
 XGID = 'g-----E-C---fE-----b----B-:1:1:1:22:0:0:3:0:10'
-XGID = 'aEBBB-A----A------A---c-b-:1:1:1:21:0:0:3:0:10'
+XGID = 'aFBBB-A---A-------A---c-b-:1:1:1:21:0:0:3:0:10'
 
 # board consists of 11•19 cells
 board = [
@@ -31,20 +33,13 @@ def XG_get_pipcount_for_point(c):
 
     return ord(c.lower()) - 96
 
-def set_pips(position, checkers, board):
+def set_pips(position, player, stack_height, board):
 
     if position < 0 or position > 25:
         return False
 
-    stack_height = XG_get_pipcount_for_point(checkers)
-
     if stack_height < 1 or stack_height > 15:
         return False
-
-    if checkers == checkers.lower():
-        player = 'white'
-    else:
-        player = 'black'
 
     columns = [16, 15, 14, 13, 12, 11, 7, 6, 5, 4, 3, 2]
     if position <= 12:
@@ -76,12 +71,12 @@ def set_pips(position, checkers, board):
         if col == 9:
             # checkers on the bar
             if stack_elem <= 4:
-                if player == 'black':
+                if player == 'bottom':
                     board[row+((4-stack_elem)*direction)][col] = chr(int('0xDB', 16))
                 else:
                     board[row+((4-stack_elem)*direction)][col] = chr(int('0xD0', 16))
             else:
-                if player == 'black':
+                if player == 'bottom':
                     board[row][col] = chr(int('0xDB', 16) + (stack_height-5))
                 else:
                     board[row][col] = chr(int('0xD0', 16) + (stack_height-5))
@@ -91,19 +86,19 @@ def set_pips(position, checkers, board):
         elif stack_elem <= 4:
             if position % 2 == 0:
                 # white points
-                if player == 'black':
+                if player == 'bottom':
                     board[row+(stack_elem*direction)][col] = chr(int('0x55', 16) + top_or_bottom + stack_elem)
                 else:
                     board[row+(stack_elem*direction)][col] = chr(int('0x4B', 16) + top_or_bottom + stack_elem)
             else:
                 # black points
-                if player == 'black':
+                if player == 'bottom':
                     board[row+(stack_elem*direction)][col] = chr(int('0x5A', 16) + top_or_bottom + stack_elem)
                 else:
                     board[row+(stack_elem*direction)][col] = chr(int('0x50', 16) + top_or_bottom + stack_elem)
 
         else:
-            if player == 'black':
+            if player == 'bottom':
                 board[row+(4*direction)][col] = chr(int('0xDB', 16) + (stack_height-5))
             else:
                 board[row+(4*direction)][col] = chr(int('0xD0', 16) + (stack_height-5))
@@ -167,16 +162,32 @@ def set_bearoff(checkers, board):
 
 
 if __name__ == "__main__":
+    print(sys.argv)
+    if len(sys.argv) != 2:
+        print(f"USAGE: {sys.argv[0]} <position id>")
+        sys.exit(1)
+
+    id = sys.argv[1]
+    if len(id) == 14:
+        # gnubg id
+        # translate to xgid? or parse?
+        print("GnuBG-IDs not supported yet")
+        sys.exit(0)
+
+    print(len(id))
+
     # board positions 1-24
     checkers = [0, 0] # top, bottom player
-    for position, c in enumerate(XGID[0:26]):
-        set_pips(position, c, board)
-        i = XG_get_pipcount_for_point(c)
+    for position, c in enumerate(id[0:26]):
+        stack_height = XG_get_pipcount_for_point(c)
         if c.islower():
             # top player
-            checkers[0] += i
+            player = 'top'
+            checkers[0] += stack_height
         else:
-            checkers[1] += i
+            player = 'bottom'
+            checkers[1] += stack_height
+        set_pips(position, player, stack_height, board)
 
     checkers[0] = 15 - checkers[0]
     checkers[1] = 15 - checkers[1]
@@ -186,7 +197,7 @@ if __name__ == "__main__":
     set_cube(cube_value, cube_position, board)
     set_turn(turn, dice, board)
 
-    print(cube_value, cube_position, turn, dice, score1, score2, crawford_jacoby, match_length, max_cube)
+    #print(cube_value, cube_position, turn, dice, score1, score2, crawford_jacoby, match_length, max_cube)
 
     b = '\n'.join([''.join(s) for s in board])
     print(b)
