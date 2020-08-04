@@ -244,9 +244,8 @@ def XG_validate_id(id):
     return True
 
 if __name__ == "__main__":
-    print(sys.argv)
-    if len(sys.argv) != 2:
-        print(f"USAGE: {sys.argv[0]} <position id>")
+    if len(sys.argv) < 2:
+        print(f"USAGE: {sys.argv[0]} <position id> [--makeimg]")
         sys.exit(1)
 
     id = sys.argv[1]
@@ -259,6 +258,11 @@ if __name__ == "__main__":
     if not XG_validate_id(id):
         print("ID not valid!")
         sys.exit(1)
+
+    generate_image = False
+    if len(sys.argv) == 3 and sys.argv[2] == '--makeimg':
+        from position_to_anki import positions_to_tex, tex_to_pdf, pdf_to_png
+        generate_image = True
 
     # board positions 1-24
     checkers = [0, 0] # top, bottom player
@@ -283,5 +287,11 @@ if __name__ == "__main__":
 
     #print(cube_value, cube_position, turn, dice, score1, score2, crawford_jacoby, match_length, max_cube)
 
-    b = '\n'.join([''.join(s) for s in board])
-    print(b)
+    position = '\n'.join([''.join(s) for s in board])
+
+    if generate_image:
+        tex = positions_to_tex([position])
+        tempfile = tex_to_pdf(tex)
+        pdf_to_png(tempfile, '.', id)
+    else:
+        print(position)
