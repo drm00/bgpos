@@ -8,6 +8,7 @@ import sys
 # documentation:
 # XGID: http://www.extremegammon.com/extremegammon2.pdf, pp. 146-147
 # GnuBG Position ID: https://www.gnu.org/software/gnubg/manual/html_node/A-technical-description-of-the-Position-ID.html#A-technical-description-of-the-Position-ID
+# GnuBG Match ID: https://www.gnu.org/software/gnubg/manual/html_node/A-technical-description-of-the-Match-ID.html#A-technical-description-of-the-Match-ID
 
 XGID = '-a-B--E-B-a-dDB--b-bcb----:1:1:-1:63:0:0:0:3:8'
 XGID = '-b--B-C-CA-AdC-a-c-e-A--A-:3:-1:1:62:0:0:3:0:10'
@@ -156,6 +157,7 @@ def set_turn(turn, dice, board):
     else:
         # top players turn, left side of the board
         col1, col2 = 3, 6
+        # TODO set roll1/roll2?
 
     board[row][col1] = roll1
     board[row][col2] = roll2
@@ -292,9 +294,8 @@ def pips_to_gnubgid(pips):
         top.append(s)
 
     # combine them to a bitstring - gnubg emits top player first
-    bitstring = ''.join(top) + ''.join(bottom)
-    if len(bitstring) < 80:
-        bitstring += '0' * (80-len(bitstring))
+    # also pad the right end to 80 bits
+    bitstring = ''.join(top) + ''.join(bottom) + ''.zfill(80-len(bitstring))
 
     all_bytes = []
     for i in range(0, len(bitstring), 8):
@@ -315,13 +316,21 @@ def cube_exponent_to_gnubg(cube_exponent):
 def pips_to_xgid():
     pass
 
-def gnubg_position_id_to_bitstring(position_id):
-    if not position_id.endswith('=='):
-        position_id += '=='
+def gnubg_id_to_bitstring(id):
 
-    key = base64.b64decode(position_id)
+    # python base64 expects == at the end
+    if not id.endswith('=='):
+        id += '=='
+
+    key = base64.b64decode(id)
+
+    # strip 0b, expand to 8 bits per byte
     little_endian_bytes = [bin(x)[2:].zfill(8) for x in key]
-    bitstring = ''.join([b[::-1] for b in little_endian_bytes])
+
+    # reverse order of bits to get big endian encoding
+    big_endian_bytes = [b[::-1] for b in little_endian_bytes]
+
+    bitstring = ''.join(big_endian_bytes)
 
     return bitstring
 
@@ -375,27 +384,177 @@ def xgid_to_pips(xgid):
 
     return pips
 
-def gnubgid_to_pips(gnubgid):
-    bitstring = gnubg_position_id_to_bitstring(gnubgid)
+def gnubgid_to_pips(positionid):
+    bitstring = gnubg_id_to_bitstring(positionid)
     pips = gnubg_bitstring_to_pips(bitstring)
 
     return pips
+
+def xg_parse_matchid(matchid):
+    cube_exponent, cube_position, turn, dice, score1, score2, crawford_jacoby, match_length, max_cube = matchid.split(':')
+    cube_position = int(cube_position)
+
+    match = {
+        "cube_exponent": cube_exponent,
+        "cube_position": cube_position,
+        "turn": turn,
+        "dice": dice,
+        "score_bottom": score1,
+        "score_top": score2,
+        "match_length": match_length,
+    }
+
+    return match
+
+def bitmask(n):
+    """Returns a bitmask with n bits set to 1.
+    Example: bitmask(4) = 0b1111
+    """
+
+    return (1 << n) - 1
+
+def bitsequal(a, b):
+    """Compare two integers by XORing them - when they are equal, XOR results in 0 bits set, which is 0.
+    Example: bitsequal(1, 1) == True; bitsequal(1, 2) == False
+    """
+
+    return (a ^ b) == 0
+
+def extract_and_remove_bits(bitstring, n):
+    """Extract the last n bits and remove them from the bitstring integer.
+    Example: extract_and_remove_bits(0b10001100, 4) = 0b1100, 0b1000
+    """
+
+    extracted = bitstring & bitmask(n)
+    bitstring >>= n
+
+    return extracted, bitstring
+
+def gnubg_parse_matchid(matchid):
+    """The match id is a bitstring of length 66.
+    Bits are taken from the right end of the bitstring.
+
+    Bit 1-4: Cube
+    Bit 5-6: CubeOwner
+    Bit 7: DiceOwner
+    Bit 8: Crawford
+    Bit 9-11: GameState
+    Bit 12: TurnOwner
+    Bit 13: Double
+    Bit 14-15: Resign
+    Bit 16-18: Dice1
+    Bit 19-21: Dice2
+    Bit 22-36: Match length
+    Bit 37-51: Score player 0
+    Bit 52-66: Score player 1
+
+    Test:
+        QYkqASAAIAAA
+        => 0x41 0x89 0x2A 0x01 0x20 0x00 0x20 0x00 0x00
+        => 1000 00 1 0 100 1 0 00 101 010 100100000000000 010000000000000 001000000000000
+        => has to be reversed
+    """
+
+    # bitstring for match id has length of 66, but due to base64-encoding,
+    # the resulting bitstring from the function is of length 72.
+    # We just ignore the remaining bits.
+    bitstring = gnubg_id_to_bitstring(matchid)
+
+    # gnubg reverses the position string - maybe the integer gets too big otherwise,
+    # as it has a large number of leading zeroes when reversed.
+    bitstring = int(bitstring[::-1], 2)
+
+    cube_exponent,  bitstring = extract_and_remove_bits(bitstring, 4)
+    cube_position,  bitstring = extract_and_remove_bits(bitstring, 2)
+    player_on_roll, bitstring = extract_and_remove_bits(bitstring, 1)
+    crawford,       bitstring = extract_and_remove_bits(bitstring, 1)
+    game_state,     bitstring = extract_and_remove_bits(bitstring, 3)
+    turn,           bitstring = extract_and_remove_bits(bitstring, 1)
+    double_offered, bitstring = extract_and_remove_bits(bitstring, 1)
+    resign,         bitstring = extract_and_remove_bits(bitstring, 2)
+    dice1,          bitstring = extract_and_remove_bits(bitstring, 3)
+    dice2,          bitstring = extract_and_remove_bits(bitstring, 3)
+    match_length,   bitstring = extract_and_remove_bits(bitstring, 15)
+    score0,         bitstring = extract_and_remove_bits(bitstring, 15)
+    score1,         bitstring = extract_and_remove_bits(bitstring, 15)
+
+    # turn bits to xgid match notation
+    if bitsequal(cube_position, 0b11):
+        cube_position = 0 # center
+    elif bitsequal(cube_position, 0b00):
+        cube_position = -1 # player 0 / top player
+    elif bitsequal(cube_position, 0b01):
+        cube_position = 1 # player 1 / bottom player
+    else:
+        print(f"ERROR: illegal cube position: {cube_position}")
+        sys.exit(1)
+
+    if bitsequal(player_on_roll, 0b0):
+        turn = -1 # player0, top player
+    elif bitsequal(player_on_roll, 0b1):
+        turn = 1 # player1, bottom player
+    else:
+        print(f"ERROR: illegal player on roll: {player_on_roll}")
+        sys.exit(1)
+
+    dice = ''
+    if double_offered:
+        dice = 'D'
+    elif not double_offered and dice1 == 0 and dice2 == 0:
+        # not rolled yet
+        dice = '00'
+    elif dice1 >= 1 and dice1 <= 6 and dice2 >= 1 and dice2 <= 6:
+        dice = str(dice1) + str(dice2)
+    else:
+        print(f"ERROR: illegal dice: {dice1}/{dice2}")
+        sys.exit(1)
+
+    print(f"%cube exponent: {cube_exponent}")
+    print(f"%cube pos: {cube_position}")
+    print(f"%player on roll: {player_on_roll}")
+    print(f"%crawford: {crawford}")
+    print(f"%game state: {game_state}")
+    print(f"%turn: {turn}")
+    print(f"%double offered: {double_offered}")
+    print(f"%resign: {resign}")
+    print(f"%dice1: {dice1}")
+    print(f"%dice2: {dice2}")
+    print(f"%match length: {match_length}")
+    print(f"%score0: {score0}")
+    print(f"%score1: {score1}")
+
+    match = {
+        "cube_exponent": cube_exponent,
+        "cube_position": cube_position,
+        "turn": turn,
+        "dice": dice,
+        "score_bottom": score1, # bottom player
+        "score_top": score0, # top player
+        "match_length": match_length,
+    }
+
+    return match
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
         print(f"USAGE: {sys.argv[0]} <position id> [--makeimg]")
         sys.exit(1)
 
-    pips = {}
     id = sys.argv[1]
-    if len(id) == 14:
+    if len(id) == 14 + 1 + 12:
         # gnubg id
-        pips = gnubgid_to_pips(id)
+        positionid, matchid = id.split(':')
+        pips = gnubgid_to_pips(positionid)
+        match = gnubg_parse_matchid(matchid)
+        print(f"%{match}")
     else:
         if not XG_validate_id(id):
             print("ID not valid!")
             sys.exit(1)
-        pips = xgid_to_pips(id)
+        positionid, matchid = id[:26], id[26:]
+        pips = xgid_to_pips(positionid)
+        match = xg_parse_matchid(matchid)
 
     #for pos in sorted(pips.keys()):
         #print(f"pos {pos}: {pips[pos]}")
@@ -409,25 +568,8 @@ if __name__ == "__main__":
         set_pips(position, data['player'], data['stack'], board)
 
     set_bearoff(pips, board)
-
-    # TODO also for gnubg match id
-    #cube_value, cube_position, turn, dice, score1, score2, crawford_jacoby, match_length, max_cube = id[27:].split(':')
-    #cube_value = int(cube_value)
-    #cube_position = int(cube_position)
-    #print(cube_value, cube_exponent_to_gnubg(cube_value))
-    """
-    print(match_info_to_gnubg_matchid(
-        cube_value,
-        cube_position,
-        turn,
-        crawford_jacoby,
-        dice,
-        ...
-    )
-    """
-
-    #set_cube(cube_value, cube_position, board)
-    #set_turn(turn, dice, board)
+    set_cube(match["cube_exponent"], match["cube_position"], board)
+    set_turn(match["turn"], match["dice"], board)
 
     #print(cube_value, cube_position, turn, dice, score1, score2, crawford_jacoby, match_length, max_cube)
 
