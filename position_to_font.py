@@ -376,7 +376,7 @@ def xgid_to_pips(xgid):
     return pips
 
 def gnubgid_to_pips(gnubgid):
-    bitstring = gnubg_position_id_to_bitstring(id)
+    bitstring = gnubg_position_id_to_bitstring(gnubgid)
     pips = gnubg_bitstring_to_pips(bitstring)
 
     return pips
