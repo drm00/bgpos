@@ -206,9 +206,7 @@ def set_bearoff(pips, board):
 
 
 def XG_validate_id(id):
-    s = id.split(':')
-    points = s[0]
-    setup = s[1:]
+    points, *setup = id.split(':')
 
     if len(points) != 26:
         return False
@@ -221,9 +219,8 @@ def XG_validate_id(id):
 
         i = 0 if c.isupper() else 1
         total_checkers[i] += XG_get_pipcount_for_point(c)
-
-    if total_checkers[0] > 15 or total_checkers[1] > 15:
-        return False
+        if total_checkers[i] > 15:
+            return False
 
     try:
         cube_value = int(setup[0])
