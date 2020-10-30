@@ -141,4 +141,5 @@ def parse_id(id):
     pips = _parse_positionid(positionid)
     match = _parse_matchid(matchid)
 
-    return pips, match
+    # id is already safe
+    return pips, match, id
