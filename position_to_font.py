@@ -11,6 +11,9 @@ import sys
 # GnuBG Match ID: https://www.gnu.org/software/gnubg/manual/html_node/A-technical-description-of-the-Match-ID.html#A-technical-description-of-the-Match-ID
 # GnuBG Match ID (code): https://cvs.savannah.gnu.org/viewvc/gnubg/gnubg/matchid.c?view=log
 
+# TODO
+# add flag to rotate the board
+
 XGID = '-a-B--E-B-a-dDB--b-bcb----:1:1:-1:63:0:0:0:3:8'
 XGID = '-b--B-C-CA-AdC-a-c-e-A--A-:3:-1:1:62:0:0:3:0:10'
 XGID = 'g-----E-C---fE-----b----B-:1:1:1:22:0:0:3:0:10'
@@ -565,10 +568,26 @@ def gnubg_parse_matchid(matchid):
 
     return match
 
+def position_to_png(position, safe_id, metatext):
+    from PIL import Image, ImageDraw, ImageFont
+
+    xg_font_size = 40
+    xg_font = ImageFont.truetype('/home/nils/.fonts/extreme gammon.ttf', xg_font_size)
+    text_font = ImageFont.truetype('/home/nils/.fonts/libertinusserif-regular.otf', xg_font_size)
+
+    img = Image.new('RGB', (17*xg_font_size, 17*xg_font_size), color='white')
+    d = ImageDraw.Draw(img)
+
+    d.text((0,0), position, font=xg_font, spacing=0, fill='black')
+    if len(metatext):
+        d.text((xg_font_size, 16*xg_font_size), metatext, font=text_font, fill='black')
+
+    img.save(f"{safe_id}.png")
+
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print(f"USAGE: {sys.argv[0]} <position id> [--makeimg]")
+        print(f"USAGE: {sys.argv[0]} <position id> [<--topng|--topdf>]")
         sys.exit(1)
 
     id = sys.argv[1]
@@ -577,6 +596,7 @@ if __name__ == "__main__":
         positionid, matchid = id.split(':')
         pips = gnubgid_to_pips(positionid)
         match = gnubg_parse_matchid(matchid)
+        metatext = '' # TODO
         print(f"%{match}")
         safe_id = gnubg_create_safe_ids(positionid) + ':' + gnubg_create_safe_ids(matchid)
     else:
@@ -586,15 +606,19 @@ if __name__ == "__main__":
         positionid, matchid = id[:26], id[26:]
         pips = xgid_to_pips(positionid)
         match = xg_parse_matchid(matchid)
+        metatext = '' # TODO
         safe_id = id
 
     #for pos in sorted(pips.keys()):
         #print(f"pos {pos}: {pips[pos]}")
 
     generate_image = False
-    if len(sys.argv) == 3 and sys.argv[2] == '--makeimg':
-        from position_to_anki import positions_to_tex, tex_to_pdf, pdf_to_png
-        generate_image = True
+    generate_pdf = False
+    if len(sys.argv) == 3:
+        if sys.argv[2] == '--topng':
+            generate_image = True
+        elif sys.argv[2] == '--topdf':
+            generate_pdf = True
 
     for position, data in pips.items():
         set_pips(position, data['player'], data['stack'], board)
@@ -608,8 +632,12 @@ if __name__ == "__main__":
     position = '\n'.join([''.join(s) for s in board])
 
     if generate_image:
+        position_to_png(position, safe_id, metatext)
+    elif generate_pdf:
+        from position_to_anki import positions_to_tex, tex_to_pdf
+        import shutil
         tex = positions_to_tex([position])
         tempfile = tex_to_pdf(tex)
-        pdf_to_png(tempfile, '.', safe_id)
+        shutil.move(f"{tempfile}.pdf", f"{safe_id}.pdf")
     else:
         print(position)

@@ -1,4 +1,5 @@
-TexLive with lualatex (e.g. TeXLive 2019)
-ImageMagick (convert)
+TexLive with lualatex (e.g. TeXLive 2019) - for pdf creation
+ImageMagick (convert) - for conversion from pdf to png
+python3-pillow - for png creation
 eXtreme Gammon Font (http://extremegammon.com/font.aspx), installed into ~/.fonts
 python3 with BeautifulSoup
