@@ -603,7 +603,7 @@ if __name__ == "__main__":
         if not XG_validate_id(id):
             print("ID not valid!")
             sys.exit(1)
-        positionid, matchid = id[:26], id[26:]
+        positionid, matchid = id.split(':', 1)
         pips = xgid_to_pips(positionid)
         match = xg_parse_matchid(matchid)
         metatext = '' # TODO
