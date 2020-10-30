@@ -334,6 +334,17 @@ def gnubg_id_to_bitstring(id):
 
     return bitstring
 
+def gnubg_create_safe_ids(id):
+
+    # add padding if necessary
+    id += '=' * (len(id) % 4)
+    key = base64.b64decode(id)
+    safe_id = base64.urlsafe_b64encode(key).decode('ascii')
+    # remove padding again
+    safe_id = safe_id.rstrip('=')
+
+    return safe_id
+
 def gnubg_bitstring_to_pips(bitstring):
     """The gnubg bitstring starts with the top player, while the xgid
     assumes the positions from the bottom players perspective.  Therefore,
@@ -567,6 +578,7 @@ if __name__ == "__main__":
         pips = gnubgid_to_pips(positionid)
         match = gnubg_parse_matchid(matchid)
         print(f"%{match}")
+        safe_id = gnubg_create_safe_ids(positionid) + ':' + gnubg_create_safe_ids(matchid)
     else:
         if not XG_validate_id(id):
             print("ID not valid!")
@@ -574,6 +586,7 @@ if __name__ == "__main__":
         positionid, matchid = id[:26], id[26:]
         pips = xgid_to_pips(positionid)
         match = xg_parse_matchid(matchid)
+        safe_id = id
 
     #for pos in sorted(pips.keys()):
         #print(f"pos {pos}: {pips[pos]}")
@@ -597,6 +610,6 @@ if __name__ == "__main__":
     if generate_image:
         tex = positions_to_tex([position])
         tempfile = tex_to_pdf(tex)
-        pdf_to_png(tempfile, '.', id)
+        pdf_to_png(tempfile, '.', safe_id)
     else:
         print(position)
