@@ -13,6 +13,7 @@ import sys
 
 # TODO
 # add flag to rotate the board
+# add flag --convert to convert between xgid and gnubgid
 
 XGID = '-a-B--E-B-a-dDB--b-bcb----:1:1:-1:63:0:0:0:3:8'
 XGID = '-b--B-C-CA-AdC-a-c-e-A--A-:3:-1:1:62:0:0:3:0:10'
@@ -43,7 +44,8 @@ def XG_get_pipcount_for_point(c):
     if c == '-':
         return 0
 
-    return ord(c.lower()) - 96
+    # a is 1, o is 15
+    return ord(c.lower()) - ord('a') + 1
 
 def set_pips(position, player, stack_height, board):
 
@@ -181,6 +183,7 @@ def set_bearoff(pips, board):
         if stack_height == 0:
             continue
 
+        # a full stack of beared off checkers has height 5
         full, part = divmod(stack_height, 5)
         if i == 0:
             # top player
@@ -193,9 +196,13 @@ def set_bearoff(pips, board):
             direction = -1
             diff = 5
 
+        # draw full stacks
         for j in range(full):
             board[row+(j*direction)][18] = chr(int('0xE6', 16) + diff)
-        board[row+(full*direction)][18] = chr(int('0xE6', 16) + diff + (5-part))
+
+        # draw the remaining stack, if there is one
+        if part:
+            board[row+(full*direction)][18] = chr(int('0xE6', 16) + diff + (5-part))
 
 
 def XG_validate_id(id):
@@ -206,9 +213,17 @@ def XG_validate_id(id):
     if len(points) != 26:
         return False
 
+    # check if checker count is above 15 for each player
+    total_checkers = [0, 0]
     for c in points:
-        if c.lower() not in '-abcdefg':
+        if c.lower() not in '-abcdefghijklmno':
             return False
+
+        i = 0 if c.isupper() else 1
+        total_checkers[i] += XG_get_pipcount_for_point(c)
+
+    if total_checkers[0] > 15 or total_checkers[1] > 15:
+        return False
 
     try:
         cube_value = int(setup[0])
@@ -381,12 +396,12 @@ def gnubg_bitstring_to_pips(bitstring):
 
     return pips
 
-def xgid_to_pips(xgid):
+def xgid_to_pips(positionid):
     # position 0: checkers on the bar of top player
     # board positions 1-24
     # position 25: checkers on the bar of bottom player
     pips = {}
-    for position, c in enumerate(xgid[0:26]):
+    for position, c in enumerate(positionid):
         stack_height = XG_get_pipcount_for_point(c)
         if stack_height == 0:
             continue
@@ -608,9 +623,6 @@ if __name__ == "__main__":
         match = xg_parse_matchid(matchid)
         metatext = '' # TODO
         safe_id = id
-
-    #for pos in sorted(pips.keys()):
-        #print(f"pos {pos}: {pips[pos]}")
 
     generate_image = False
     generate_pdf = False
