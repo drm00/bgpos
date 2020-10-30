@@ -466,7 +466,7 @@ def gnubg_parse_matchid(matchid):
     bitstring = int(bitstring[::-1], 2)
 
     cube_exponent,  bitstring = extract_and_remove_bits(bitstring, 4)
-    cube_position,  bitstring = extract_and_remove_bits(bitstring, 2)
+    cube_owner,     bitstring = extract_and_remove_bits(bitstring, 2)
     player_on_roll, bitstring = extract_and_remove_bits(bitstring, 1)
     crawford,       bitstring = extract_and_remove_bits(bitstring, 1)
     game_state,     bitstring = extract_and_remove_bits(bitstring, 3)
@@ -486,23 +486,28 @@ def gnubg_parse_matchid(matchid):
     assert bitstring == 0
 
     # turn bits to xgid match notation
-    if bitsequal(cube_position, 0b11):
+    if bitsequal(cube_owner, 0b11):
         cube_position = 0 # center
-    elif bitsequal(cube_position, 0b00):
+    elif bitsequal(cube_owner, 0b00):
         cube_position = -1 # player 0 / top player
-    elif bitsequal(cube_position, 0b01):
+    elif bitsequal(cube_owner, 0b01):
         cube_position = 1 # player 1 / bottom player
     else:
         print(f"ERROR: illegal cube position: {cube_position}")
         sys.exit(1)
 
-    if bitsequal(player_on_roll, 0b0):
-        turn = -1 # player0, top player
-    elif bitsequal(player_on_roll, 0b1):
-        turn = 1 # player1, bottom player
+    if player_on_roll == 0:
+        xg_turn = -1 # player0, top player
     else:
-        print(f"ERROR: illegal player on roll: {player_on_roll}")
-        sys.exit(1)
+        xg_turn = 1 # player1, bottom player
+
+    crawford = bool(crawford)
+
+    # TODO game state
+
+    # TODO turn
+
+    # TODO resign
 
     dice = ''
     if double_offered:
@@ -523,7 +528,7 @@ def gnubg_parse_matchid(matchid):
     print(f"%player on roll: {player_on_roll}")
     print(f"%crawford: {crawford}")
     print(f"%game state: {game_state}")
-    print(f"%turn: {turn}")
+    print(f"%xg_turn: {xg_turn}")
     print(f"%double offered: {double_offered}")
     print(f"%resign: {resign}")
     print(f"%dice1: {dice1}")
@@ -539,7 +544,7 @@ def gnubg_parse_matchid(matchid):
     match = {
         "cube_exponent": cube_exponent,
         "cube_position": cube_position,
-        "turn": turn,
+        "turn": xg_turn,
         "dice": dice,
         "score_bottom": score1, # bottom player
         "score_top": score0, # top player
