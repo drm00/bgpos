@@ -9,6 +9,7 @@ import sys
 # XGID: http://www.extremegammon.com/extremegammon2.pdf, pp. 146-147
 # GnuBG Position ID: https://www.gnu.org/software/gnubg/manual/html_node/A-technical-description-of-the-Position-ID.html#A-technical-description-of-the-Position-ID
 # GnuBG Match ID: https://www.gnu.org/software/gnubg/manual/html_node/A-technical-description-of-the-Match-ID.html#A-technical-description-of-the-Match-ID
+# GnuBG Match ID (code): https://cvs.savannah.gnu.org/viewvc/gnubg/gnubg/matchid.c?view=log
 
 XGID = '-a-B--E-B-a-dDB--b-bcb----:1:1:-1:63:0:0:0:3:8'
 XGID = '-b--B-C-CA-AdC-a-c-e-A--A-:3:-1:1:62:0:0:3:0:10'
@@ -318,9 +319,8 @@ def pips_to_xgid():
 
 def gnubg_id_to_bitstring(id):
 
-    # python base64 expects == at the end
-    if not id.endswith('=='):
-        id += '=='
+    # add padding if necessary
+    id += '=' * (len(id) % 4)
 
     key = base64.b64decode(id)
 
@@ -431,7 +431,7 @@ def extract_and_remove_bits(bitstring, n):
     return extracted, bitstring
 
 def gnubg_parse_matchid(matchid):
-    """The match id is a bitstring of length 66.
+    """The (extended, now default) match id is a bitstring of length 67.
     Bits are taken from the right end of the bitstring.
 
     Bit 1-4: Cube
@@ -447,6 +447,7 @@ def gnubg_parse_matchid(matchid):
     Bit 22-36: Match length
     Bit 37-51: Score player 0
     Bit 52-66: Score player 1
+    Bit 67: Jacoby - this is not documented in the html-matchid-documentation, check the code of matchid.c
 
     Test:
         QYkqASAAIAAA
@@ -455,7 +456,7 @@ def gnubg_parse_matchid(matchid):
         => has to be reversed
     """
 
-    # bitstring for match id has length of 66, but due to base64-encoding,
+    # bitstring for extended match id has length of 67, but due to base64-encoding,
     # the resulting bitstring from the function is of length 72.
     # We just ignore the remaining bits.
     bitstring = gnubg_id_to_bitstring(matchid)
@@ -477,6 +478,12 @@ def gnubg_parse_matchid(matchid):
     match_length,   bitstring = extract_and_remove_bits(bitstring, 15)
     score0,         bitstring = extract_and_remove_bits(bitstring, 15)
     score1,         bitstring = extract_and_remove_bits(bitstring, 15)
+    jacoby,         bitstring = extract_and_remove_bits(bitstring, 1)
+    remaining_bits, bitstring = extract_and_remove_bits(bitstring, 5)
+
+    # input is fully consumed
+    assert remaining_bits == 0b00000
+    assert bitstring == 0
 
     # turn bits to xgid match notation
     if bitsequal(cube_position, 0b11):
@@ -509,6 +516,8 @@ def gnubg_parse_matchid(matchid):
         print(f"ERROR: illegal dice: {dice1}/{dice2}")
         sys.exit(1)
 
+    jacoby = not bool(jacoby)
+
     print(f"%cube exponent: {cube_exponent}")
     print(f"%cube pos: {cube_position}")
     print(f"%player on roll: {player_on_roll}")
@@ -522,6 +531,10 @@ def gnubg_parse_matchid(matchid):
     print(f"%match length: {match_length}")
     print(f"%score0: {score0}")
     print(f"%score1: {score1}")
+    print(f"%jacoby: {jacoby}")
+
+    # TODO assemble match description
+    # money game / jacoby vs. match game / crawford
 
     match = {
         "cube_exponent": cube_exponent,
@@ -531,6 +544,7 @@ def gnubg_parse_matchid(matchid):
         "score_bottom": score1, # bottom player
         "score_top": score0, # top player
         "match_length": match_length,
+        "jacoby": jacoby,
     }
 
     return match
