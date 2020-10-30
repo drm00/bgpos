@@ -2,11 +2,10 @@
 
 import base64
 import sys
+import xg
 
 # gnubg position id has 14 characters
-# extreme gammon position id has 51 characters (?)
 # documentation:
-# XGID: http://www.extremegammon.com/extremegammon2.pdf, pp. 146-147
 # GnuBG Position ID: https://www.gnu.org/software/gnubg/manual/html_node/A-technical-description-of-the-Position-ID.html#A-technical-description-of-the-Position-ID
 # GnuBG Match ID: https://www.gnu.org/software/gnubg/manual/html_node/A-technical-description-of-the-Match-ID.html#A-technical-description-of-the-Match-ID
 # GnuBG Match ID (code): https://cvs.savannah.gnu.org/viewvc/gnubg/gnubg/matchid.c?view=log
@@ -39,13 +38,6 @@ board = [
     [' ', '\u00F0', 'a', 'f', 'a', 'f', 'a', 'f', '\u0040', ' ', '\u0040', 'a', 'f', 'a', 'f', 'a', 'f', '\u00F0', ' '],
     [' ', '\u00F3', '\u00A3', '\u00B4', '\u00B3', '\u00B4', '\u00A4', '\u00F4'],
 ]
-
-def XG_get_pipcount_for_point(c):
-    if c == '-':
-        return 0
-
-    # a is 1, o is 15
-    return ord(c.lower()) - ord('a') + 1
 
 def set_pips(position, player, stack_height, board):
 
@@ -205,80 +197,6 @@ def set_bearoff(pips, board):
             board[row+(full*direction)][18] = chr(int('0xE6', 16) + diff + (5-part))
 
 
-def XG_validate_id(id):
-    points, *setup = id.split(':')
-
-    if len(points) != 26:
-        return False
-
-    # check if checker count is above 15 for each player
-    total_checkers = [0, 0]
-    for c in points:
-        if c.lower() not in '-abcdefghijklmno':
-            return False
-
-        i = 0 if c.isupper() else 1
-        total_checkers[i] += XG_get_pipcount_for_point(c)
-        if total_checkers[i] > 15:
-            return False
-
-    try:
-        cube_value = int(setup[0])
-        if cube_value not in range(10):
-            return False
-
-        cube_position = int(setup[1])
-        if cube_position not in [1, 0, -1]:
-            return False
-
-        turn = int(setup[2])
-        if turn not in [1, -1]:
-            return False
-
-        roll = setup[3]
-        if len(roll) == 1:
-            if roll not in ['D', 'B', 'R']:
-                return False
-        elif len(roll) == 2:
-            if roll == '00':
-                pass
-            else:
-                roll1, roll2 = int(roll[0]), int(roll[1])
-                if roll1 not in range(1, 7):
-                    return False
-                if roll2 not in range(1, 7):
-                    return False
-
-        score1 = int(setup[4])
-        if score1 < 0:
-            return False
-
-        score2 = int(setup[5])
-        if score2 < 0:
-            return False
-
-        crawford_jacoby = int(setup[6])
-        match_length = int(setup[7])
-
-        if match_length == 0:
-            # unlimited game
-            if crawford_jacoby not in range(4):
-                return False
-        else:
-            # match game
-            if crawford_jacoby not in range(2):
-                return False
-
-        max_cube = int(setup[8])
-
-    except:
-        return False
-
-    return True
-
-def XGID_to_GNUBG(xgid):
-    pass
-
 def pips_to_gnubgid(pips):
     # assemble position id
     # player on roll is bottom player
@@ -328,9 +246,6 @@ def cube_exponent_to_gnubg(cube_exponent):
         return False
 
     return bin(2**cube_exponent)[2:].zfill(4)
-
-def pips_to_xgid():
-    pass
 
 def gnubg_id_to_bitstring(id):
 
@@ -393,44 +308,11 @@ def gnubg_bitstring_to_pips(bitstring):
 
     return pips
 
-def xgid_to_pips(positionid):
-    # position 0: checkers on the bar of top player
-    # board positions 1-24
-    # position 25: checkers on the bar of bottom player
-    pips = {}
-    for position, c in enumerate(positionid):
-        stack_height = XG_get_pipcount_for_point(c)
-        if stack_height == 0:
-            continue
-        player = 'top' if c.islower() else 'bottom'
-        pips[position] = {
-            'stack': stack_height,
-            'player': player,
-        }
-
-    return pips
-
 def gnubgid_to_pips(positionid):
     bitstring = gnubg_id_to_bitstring(positionid)
     pips = gnubg_bitstring_to_pips(bitstring)
 
     return pips
-
-def xg_parse_matchid(matchid):
-    cube_exponent, cube_position, turn, dice, score1, score2, crawford_jacoby, match_length, max_cube = matchid.split(':')
-    cube_position = int(cube_position)
-
-    match = {
-        "cube_exponent": cube_exponent,
-        "cube_position": cube_position,
-        "turn": turn,
-        "dice": dice,
-        "score_bottom": score1,
-        "score_top": score2,
-        "match_length": match_length,
-    }
-
-    return match
 
 def bitmask(n):
     """Returns a bitmask with n bits set to 1.
@@ -612,12 +494,7 @@ if __name__ == "__main__":
         print(f"%{match}")
         safe_id = gnubg_create_safe_ids(positionid) + ':' + gnubg_create_safe_ids(matchid)
     else:
-        if not XG_validate_id(id):
-            print("ID not valid!")
-            sys.exit(1)
-        positionid, matchid = id.split(':', 1)
-        pips = xgid_to_pips(positionid)
-        match = xg_parse_matchid(matchid)
+        pips, match = xg.parse_id(id)
         metatext = '' # TODO
         safe_id = id
 
