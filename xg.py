@@ -84,11 +84,8 @@ def _is_valid(id):
 
     return True
 
-def id_to_gnubgid(id):
-    pass
-
-def position_to_xgid(pips, match):
-    pass
+def create_id(pips, match):
+    return 'TODO:TODO'
 
 def _parse_positionid(positionid):
     # position 0: checkers on the bar of top player

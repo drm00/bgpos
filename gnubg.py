@@ -8,7 +8,7 @@ import sys
 # GnuBG Match ID: https://www.gnu.org/software/gnubg/manual/html_node/A-technical-description-of-the-Match-ID.html#A-technical-description-of-the-Match-ID
 # GnuBG Match ID (code): https://cvs.savannah.gnu.org/viewvc/gnubg/gnubg/matchid.c?view=log
 
-def pips_to_gnubgid(pips):
+def _pips_to_gnubgid(pips):
     # assemble position id
     # player on roll is bottom player
     top = []
@@ -52,6 +52,12 @@ def pips_to_gnubgid(pips):
     position_id = position_id.rstrip('=')
 
     return position_id
+
+def _match_to_matchid(match):
+    return 'TODO'
+
+def create_id(pips, match):
+    return _pips_to_gnubgid(pips) + ':' + _match_to_matchid(match)
 
 def cube_exponent_to_gnubg(cube_exponent):
     if cube_exponent > 15:

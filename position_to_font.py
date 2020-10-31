@@ -8,7 +8,7 @@ import xg
 
 # TODO
 # add flag to rotate the board
-# add flag --convert to convert between xgid and gnubgid
+# combine pips, match and safe_id into one datastructure
 
 XGID = '-a-B--E-B-a-dDB--b-bcb----:1:1:-1:63:0:0:0:3:8'
 XGID = '-b--B-C-CA-AdC-a-c-e-A--A-:3:-1:1:62:0:0:3:0:10'
@@ -213,26 +213,37 @@ def position_to_png(position, safe_id, metatext):
 
 if __name__ == "__main__":
     if len(sys.argv) < 2:
-        print(f"USAGE: {sys.argv[0]} <position id> [<--topng|--topdf>]")
+        print(f"USAGE: {sys.argv[0]} <position id> [<--topng|--topdf|--convert>]")
         sys.exit(1)
 
     id = sys.argv[1]
     if len(id) == 14 + 1 + 12:
-        # gnubg id
         pips, match, safe_id = gnubg.parse_id(id)
         metatext = '' # TODO
         print(f"%{match}")
+        id_type = 'gnubg'
     else:
         pips, match, safe_id = xg.parse_id(id)
         metatext = '' # TODO
+        id_type = 'xg'
 
     generate_image = False
     generate_pdf = False
+    convert = False
     if len(sys.argv) == 3:
         if sys.argv[2] == '--topng':
             generate_image = True
         elif sys.argv[2] == '--topdf':
             generate_pdf = True
+        elif sys.argv[2] == '--convert':
+            convert = True
+
+    if convert:
+        if id_type == 'gnubg':
+            print(xg.create_id(pips, match))
+        else:
+            print(gnubg.create_id(pips, match))
+        sys.exit(0)
 
     for position, data in pips.items():
         set_pips(position, data['player'], data['stack'], board)
