@@ -39,18 +39,19 @@ def pips_to_gnubgid(pips):
         top.append(s)
 
     # combine them to a bitstring - gnubg emits top player first
+    bitstring = ''.join(top) + ''.join(bottom)
     # also pad the right end to 80 bits
-    bitstring = ''.join(top) + ''.join(bottom) + ''.zfill(80-len(bitstring))
+    bitstring += ''.zfill(80-len(bitstring))
 
     all_bytes = []
     for i in range(0, len(bitstring), 8):
         chunk = bitstring[i:i+8][::-1]
         byte = int(chunk, 2)
         all_bytes.append(byte)
-    position_id = base64.b64encode(bytes(all_bytes))
-    position_id = position_id[:-2]
+    position_id = base64.b64encode(bytes(all_bytes)).decode('ascii')
+    position_id = position_id.rstrip('=')
 
-    return position_id.decode('utf-8')
+    return position_id
 
 def cube_exponent_to_gnubg(cube_exponent):
     if cube_exponent > 15:
