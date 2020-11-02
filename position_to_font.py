@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import base64
 import sys
 
@@ -7,7 +8,6 @@ import gnubg
 import xg
 
 # TODO
-# add flag to rotate the board
 # combine pips, match and safe_id into one datastructure
 
 XGID = '-a-B--E-B-a-dDB--b-bcb----:1:1:-1:63:0:0:0:3:8'
@@ -19,6 +19,7 @@ xg_to_gnubgids = {
 # AADABwEA2rYAAA:VAkSAAAAAAAA
 
 # board consists of 11•19 cells
+# view codepoints with xfd -fa 'eXtreme Gammon'
 board = [
     [' ', '\u00F1', '\u00A1', '\u00B2', '\u00B1', '\u00B2', '\u00A2', '\u00F2'],
     [' ', '\u00F0', 'F', 'A', 'F', 'A', 'F', 'A', '\u0040', ' ', '\u0040', 'F', 'A', 'F', 'A', 'F', 'A', '\u00F0', ' '],
@@ -35,7 +36,7 @@ board = [
     [' ', '\u00F3', '\u00A3', '\u00B4', '\u00B3', '\u00B4', '\u00A4', '\u00F4'],
 ]
 
-def set_pips(position, player, stack_height, board):
+def set_pips(position, player, stack_height, mirror, board):
 
     if position < 0 or position > 25:
         return False
@@ -44,6 +45,9 @@ def set_pips(position, player, stack_height, board):
         return False
 
     columns = [16, 15, 14, 13, 12, 11, 7, 6, 5, 4, 3, 2]
+    if mirror:
+        columns.reverse()
+
     if position <= 12:
         row = 11
     else:
@@ -107,7 +111,7 @@ def set_pips(position, player, stack_height, board):
 
             break
 
-def set_cube(value, position, board):
+def set_cube(value, position, mirror, board):
 
     if position == -1:
         row = 1
@@ -120,7 +124,12 @@ def set_cube(value, position, board):
         value = 6
         row = 6
 
-    board[row][0] = chr(int('0x21', 16) + int(value))
+    if mirror:
+        cube_col = 18
+    else:
+        cube_col = 0
+
+    board[row][cube_col] = chr(int('0x21', 16) + int(value))
 
 def set_turn(turn, dice, board):
     turn = int(turn)
@@ -156,7 +165,7 @@ def set_turn(turn, dice, board):
     board[row][col1] = roll1
     board[row][col2] = roll2
 
-def set_bearoff(pips, board):
+def set_bearoff(pips, mirror, board):
     # collect total amount of checkers on the board for each player
     checkers = [0, 0]
     for position, data in pips.items():
@@ -184,13 +193,18 @@ def set_bearoff(pips, board):
             direction = -1
             diff = 5
 
+        if mirror:
+            bearoff_col = 0
+        else:
+            bearoff_col = 18
+
         # draw full stacks
         for j in range(full):
-            board[row+(j*direction)][18] = chr(int('0xE6', 16) + diff)
+            board[row+(j*direction)][bearoff_col] = chr(int('0xE6', 16) + diff)
 
         # draw the remaining stack, if there is one
         if part:
-            board[row+(full*direction)][18] = chr(int('0xE6', 16) + diff + (5-part))
+            board[row+(full*direction)][bearoff_col] = chr(int('0xE6', 16) + diff + (5-part))
 
 
 
@@ -212,53 +226,56 @@ def position_to_png(position, safe_id, metatext):
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 2:
-        print(f"USAGE: {sys.argv[0]} <position id> [<--topng|--topdf|--convert>]")
-        sys.exit(1)
 
-    id = sys.argv[1]
-    if len(id) == 14 + 1 + 12:
-        pips, match, safe_id = gnubg.parse_id(id)
+    parser = argparse.ArgumentParser(description='Create diagrams from position ids.')
+    parser.add_argument('gameid', help='GnuBG ID or XGID.')
+    parser.add_argument('--mirror', action='store_true', help='Create a mirrored position with the checkers beared off to the left.')
+    parser.add_argument('--output', choices=['text', 'png', 'pdf'], default='text', help='Create position as text, png or pdf.')
+    parser.add_argument('--convert', action='store_true', help='Convert gnubgid to xgid and vice versa.')
+    args = parser.parse_args()
+    print(args)
+    print(args.gameid)
+
+    if len(args.gameid) == 14 + 1 + 12:
+        pips, match, safe_id = gnubg.parse_id(args.gameid)
         metatext = '' # TODO
         print(f"%{match}")
         id_type = 'gnubg'
     else:
-        pips, match, safe_id = xg.parse_id(id)
+        pips, match, safe_id = xg.parse_id(args.gameid)
         metatext = '' # TODO
         id_type = 'xg'
 
-    generate_image = False
-    generate_pdf = False
-    convert = False
-    if len(sys.argv) == 3:
-        if sys.argv[2] == '--topng':
-            generate_image = True
-        elif sys.argv[2] == '--topdf':
-            generate_pdf = True
-        elif sys.argv[2] == '--convert':
-            convert = True
-
-    if convert:
+    if args.convert:
         if id_type == 'gnubg':
             print(xg.create_id(pips, match))
         else:
             print(gnubg.create_id(pips, match))
         sys.exit(0)
 
-    for position, data in pips.items():
-        set_pips(position, data['player'], data['stack'], board)
+    if args.mirror:
+        # reverse top
+        board[0][2] = '\u00AD'
+        board[0][6] = '\u00AE'
 
-    set_bearoff(pips, board)
-    set_cube(match["cube_exponent"], match["cube_position"], board)
+        # reverse bottom
+        board[-1][2] = '\u00AF'
+        board[-1][6] = '\u00B0'
+
+    for position, data in pips.items():
+        set_pips(position, data['player'], data['stack'], args.mirror, board)
+
+    set_bearoff(pips, args.mirror, board)
+    set_cube(match["cube_exponent"], match["cube_position"], args.mirror, board)
     set_turn(match["turn"], match["dice"], board)
 
     #print(cube_value, cube_position, turn, dice, score1, score2, crawford_jacoby, match_length, max_cube)
 
     position = '\n'.join([''.join(s) for s in board])
 
-    if generate_image:
+    if args.output == 'png':
         position_to_png(position, safe_id, metatext)
-    elif generate_pdf:
+    elif args.output == 'pdf':
         from position_to_anki import positions_to_tex, tex_to_pdf
         import shutil
         tex = positions_to_tex([position])
