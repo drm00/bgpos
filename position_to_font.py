@@ -70,38 +70,29 @@ def set_pips(position, player, stack_height, mirror, board):
 
         if col == 9:
             # checkers on the bar
+            c = 0xDB if player == 'bottom' else 0xD0
             if stack_elem <= 4:
-                if player == 'bottom':
-                    board[row+((4-stack_elem)*direction)][col] = 0xDB
-                else:
-                    board[row+((4-stack_elem)*direction)][col] = 0xD0
+                board[row+((4-stack_elem)*direction)][col] = c
             else:
-                if player == 'bottom':
-                    board[row][col] = 0xDB + (stack_height-5)
-                else:
-                    board[row][col] = 0xD0 + (stack_height-5)
+                board[row][col] = c + (stack_height-5)
 
                 break
 
         elif stack_elem <= 4:
             if position % 2 == 0:
                 # white points
-                if player == 'bottom':
-                    board[row+(stack_elem*direction)][col] = 0x55 + mirror + top_or_bottom + stack_elem
-                else:
-                    board[row+(stack_elem*direction)][col] = 0x4B + mirror + top_or_bottom + stack_elem
+                c = 0x55 if player == 'bottom' else 0x4B
+                c += mirror
             else:
                 # black points
-                if player == 'bottom':
-                    board[row+(stack_elem*direction)][col] = 0x5A - mirror + top_or_bottom + stack_elem
-                else:
-                    board[row+(stack_elem*direction)][col] = 0x50 - mirror + top_or_bottom + stack_elem
+                c = 0x5A if player == 'bottom' else 0x50
+                c -= mirror
+
+            board[row+(stack_elem*direction)][col] = c + top_or_bottom + stack_elem
 
         else:
-            if player == 'bottom':
-                board[row+(4*direction)][col] = 0xDB + (stack_height-5)
-            else:
-                board[row+(4*direction)][col] = 0xD0 + (stack_height-5)
+            c = 0xDB if player == 'bottom' else 0xD0
+            board[row+(4*direction)][col] = c + (stack_height-5)
 
             break
 
