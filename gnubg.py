@@ -70,7 +70,7 @@ def _id_to_bitstring(id):
     # add padding if necessary
     id += '=' * (len(id) % 4)
 
-    key = base64.b64decode(id)
+    key = base64.urlsafe_b64decode(id)
 
     # strip 0b, expand to 8 bits per byte
     little_endian_bytes = [bin(x)[2:].zfill(8) for x in key]
@@ -86,7 +86,7 @@ def _create_safe_ids(id):
 
     # add padding if necessary
     id += '=' * (len(id) % 4)
-    key = base64.b64decode(id)
+    key = base64.urlsafe_b64decode(id)
     safe_id = base64.urlsafe_b64encode(key).decode('ascii')
     # remove padding again
     safe_id = safe_id.rstrip('=')
