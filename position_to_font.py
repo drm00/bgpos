@@ -13,19 +13,19 @@ import xg
 # board consists of 11•19 cells
 # view codepoints with xfd -fa 'eXtreme Gammon'
 board = [
-    [' ', '\u00F1', '\u00A1', '\u00B2', '\u00B1', '\u00B2', '\u00A2', '\u00F2'],
-    [' ', '\u00F0', 'F', 'A', 'F', 'A', 'F', 'A', '\u0040', ' ', '\u0040', 'F', 'A', 'F', 'A', 'F', 'A', '\u00F0', ' '],
-    [' ', '\u00F0', 'G', 'B', 'G', 'B', 'G', 'B', '\u0040', ' ', '\u0040', 'G', 'B', 'G', 'B', 'G', 'B', '\u00F0', ' '],
-    [' ', '\u00F0', 'H', 'C', 'H', 'C', 'H', 'C', '\u0040', ' ', '\u0040', 'H', 'C', 'H', 'C', 'H', 'C', '\u00F0', ' '],
-    [' ', '\u00F0', 'I', 'D', 'I', 'D', 'I', 'D', '\u0040', ' ', '\u0040', 'I', 'D', 'I', 'D', 'I', 'D', '\u00F0', ' '],
-    [' ', '\u00F0', 'J', 'E', 'J', 'E', 'J', 'E', '\u0040', ' ', '\u0040', 'J', 'E', 'J', 'E', 'J', 'E', '\u00F0', ' '],
-    [' ', '\u00F0', ' ', ' ', ' ', ' ', ' ', ' ', '\u0040', ' ', '\u0040', ' ', ' ', ' ', ' ', ' ', ' ', '\u00F0', ' '],
-    [' ', '\u00F0', 'e', 'j', 'e', 'j', 'e', 'j', '\u0040', ' ', '\u0040', 'e', 'j', 'e', 'j', 'e', 'j', '\u00F0', ' '],
-    [' ', '\u00F0', 'd', 'i', 'd', 'i', 'd', 'i', '\u0040', ' ', '\u0040', 'd', 'i', 'd', 'i', 'd', 'i', '\u00F0', ' '],
-    [' ', '\u00F0', 'c', 'h', 'c', 'h', 'c', 'h', '\u0040', ' ', '\u0040', 'c', 'h', 'c', 'h', 'c', 'h', '\u00F0', ' '],
-    [' ', '\u00F0', 'b', 'g', 'b', 'g', 'b', 'g', '\u0040', ' ', '\u0040', 'b', 'g', 'b', 'g', 'b', 'g', '\u00F0', ' '],
-    [' ', '\u00F0', 'a', 'f', 'a', 'f', 'a', 'f', '\u0040', ' ', '\u0040', 'a', 'f', 'a', 'f', 'a', 'f', '\u00F0', ' '],
-    [' ', '\u00F3', '\u00A3', '\u00B4', '\u00B3', '\u00B4', '\u00A4', '\u00F4'],
+    [0x20, 0xF1, 0xA1, 0xB2, 0xB1, 0xB2, 0xA2, 0xF2],
+    [0x20, 0xF0, 0x46, 0x41, 0x46, 0x41, 0x46, 0x41, 0x40, 0x20, 0x40, 0x46, 0x41, 0x46, 0x41, 0x46, 0x41, 0xF0, 0x20],
+    [0x20, 0xF0, 0x47, 0x42, 0x47, 0x42, 0x47, 0x42, 0x40, 0x20, 0x40, 0x47, 0x42, 0x47, 0x42, 0x47, 0x42, 0xF0, 0x20],
+    [0x20, 0xF0, 0x48, 0x43, 0x48, 0x43, 0x48, 0x43, 0x40, 0x20, 0x40, 0x48, 0x43, 0x48, 0x43, 0x48, 0x43, 0xF0, 0x20],
+    [0x20, 0xF0, 0x49, 0x44, 0x49, 0x44, 0x49, 0x44, 0x40, 0x20, 0x40, 0x49, 0x44, 0x49, 0x44, 0x49, 0x44, 0xF0, 0x20],
+    [0x20, 0xF0, 0x4A, 0x45, 0x4A, 0x45, 0x4A, 0x45, 0x40, 0x20, 0x40, 0x4A, 0x45, 0x4A, 0x45, 0x4A, 0x45, 0xF0, 0x20],
+    [0x20, 0xF0, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0x40, 0x20, 0x40, 0x20, 0x20, 0x20, 0x20, 0x20, 0x20, 0xF0, 0x20],
+    [0x20, 0xF0, 0x65, 0x6A, 0x65, 0x6A, 0x65, 0x6A, 0x40, 0x20, 0x40, 0x65, 0x6A, 0x65, 0x6A, 0x65, 0x6A, 0xF0, 0x20],
+    [0x20, 0xF0, 0x64, 0x69, 0x64, 0x69, 0x64, 0x69, 0x40, 0x20, 0x40, 0x64, 0x69, 0x64, 0x69, 0x64, 0x69, 0xF0, 0x20],
+    [0x20, 0xF0, 0x63, 0x68, 0x63, 0x68, 0x63, 0x68, 0x40, 0x20, 0x40, 0x63, 0x68, 0x63, 0x68, 0x63, 0x68, 0xF0, 0x20],
+    [0x20, 0xF0, 0x62, 0x67, 0x62, 0x67, 0x62, 0x67, 0x40, 0x20, 0x40, 0x62, 0x67, 0x62, 0x67, 0x62, 0x67, 0xF0, 0x20],
+    [0x20, 0xF0, 0x61, 0x66, 0x61, 0x66, 0x61, 0x66, 0x40, 0x20, 0x40, 0x61, 0x66, 0x61, 0x66, 0x61, 0x66, 0xF0, 0x20],
+    [0x20, 0xF3, 0xA3, 0xB4, 0xB3, 0xB4, 0xA4, 0xF4],
 ]
 
 def set_pips(position, player, stack_height, mirror, board):
@@ -70,14 +70,14 @@ def set_pips(position, player, stack_height, mirror, board):
             # checkers on the bar
             if stack_elem <= 4:
                 if player == 'bottom':
-                    board[row+((4-stack_elem)*direction)][col] = chr(0xDB)
+                    board[row+((4-stack_elem)*direction)][col] = 0xDB
                 else:
-                    board[row+((4-stack_elem)*direction)][col] = chr(0xD0)
+                    board[row+((4-stack_elem)*direction)][col] = 0xD0
             else:
                 if player == 'bottom':
-                    board[row][col] = chr(0xDB + (stack_height-5))
+                    board[row][col] = 0xDB + (stack_height-5)
                 else:
-                    board[row][col] = chr(0xD0 + (stack_height-5))
+                    board[row][col] = 0xD0 + (stack_height-5)
 
                 break
 
@@ -85,21 +85,21 @@ def set_pips(position, player, stack_height, mirror, board):
             if position % 2 == 0:
                 # white points
                 if player == 'bottom':
-                    board[row+(stack_elem*direction)][col] = chr(0x55 + top_or_bottom + stack_elem)
+                    board[row+(stack_elem*direction)][col] = 0x55 + top_or_bottom + stack_elem
                 else:
-                    board[row+(stack_elem*direction)][col] = chr(0x4B + top_or_bottom + stack_elem)
+                    board[row+(stack_elem*direction)][col] = 0x4B + top_or_bottom + stack_elem
             else:
                 # black points
                 if player == 'bottom':
-                    board[row+(stack_elem*direction)][col] = chr(0x5A + top_or_bottom + stack_elem)
+                    board[row+(stack_elem*direction)][col] = 0x5A + top_or_bottom + stack_elem
                 else:
-                    board[row+(stack_elem*direction)][col] = chr(0x50 + top_or_bottom + stack_elem)
+                    board[row+(stack_elem*direction)][col] = 0x50 + top_or_bottom + stack_elem
 
         else:
             if player == 'bottom':
-                board[row+(4*direction)][col] = chr(0xDB + (stack_height-5))
+                board[row+(4*direction)][col] = 0xDB + (stack_height-5)
             else:
-                board[row+(4*direction)][col] = chr(0xD0 + (stack_height-5))
+                board[row+(4*direction)][col] = 0xD0 + (stack_height-5)
 
             break
 
@@ -121,7 +121,7 @@ def set_cube(value, position, mirror, board):
     else:
         cube_col = 0
 
-    board[row][cube_col] = chr(0x21 + value)
+    board[row][cube_col] = 0x21 + value
 
 def set_turn(turn, dice, board):
     turn = int(turn)
@@ -147,13 +147,13 @@ def set_turn(turn, dice, board):
     if turn == 1:
         # bottom players turn, right side of the board
         col1, col2 = 12, 15
-        roll1 = chr(0x37 + roll1)
-        roll2 = chr(0x37 + roll2)
+        roll1 = 0x37 + roll1
+        roll2 = 0x37 + roll2
     else:
         # top players turn, left side of the board
         col1, col2 = 3, 6
-        roll1 = chr(0x30 + roll1)
-        roll2 = chr(0x30 + roll2)
+        roll1 = 0x30 + roll1
+        roll2 = 0x30 + roll2
 
     board[row][col1] = roll1
     board[row][col2] = roll2
@@ -193,11 +193,11 @@ def set_bearoff(pips, mirror, board):
 
         # draw full stacks
         for j in range(full):
-            board[row+(j*direction)][bearoff_col] = chr(0xE6 + diff)
+            board[row+(j*direction)][bearoff_col] = 0xE6 + diff
 
         # draw the remaining stack, if there is one
         if part:
-            board[row+(full*direction)][bearoff_col] = chr(0xE6 + diff + (5-part))
+            board[row+(full*direction)][bearoff_col] = 0xE6 + diff + (5-part)
 
 
 
@@ -249,12 +249,12 @@ if __name__ == "__main__":
 
     if args.mirror:
         # reverse top
-        board[0][2] = '\u00AD'
-        board[0][6] = '\u00AE'
+        board[0][2] = 0xAD
+        board[0][6] = 0xAE
 
         # reverse bottom
-        board[-1][2] = '\u00AF'
-        board[-1][6] = '\u00B0'
+        board[-1][2] = 0xAF
+        board[-1][6] = 0xB0
 
     for position, data in pips.items():
         set_pips(position, data['player'], data['stack'], args.mirror, board)
@@ -263,7 +263,7 @@ if __name__ == "__main__":
     set_cube(match["cube_exponent"], match["cube_position"], args.mirror, board)
     set_turn(match["turn"], match["dice"], board)
 
-    position = '\n'.join([''.join(s) for s in board])
+    position = '\n'.join([''.join(map(chr, s)) for s in board])
 
     if args.output == 'png':
         position_to_png(position, safe_id, metatext)
