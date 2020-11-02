@@ -78,14 +78,14 @@ def set_pips(position, player, stack_height, mirror, board):
             # checkers on the bar
             if stack_elem <= 4:
                 if player == 'bottom':
-                    board[row+((4-stack_elem)*direction)][col] = chr(int('0xDB', 16))
+                    board[row+((4-stack_elem)*direction)][col] = chr(0xDB)
                 else:
-                    board[row+((4-stack_elem)*direction)][col] = chr(int('0xD0', 16))
+                    board[row+((4-stack_elem)*direction)][col] = chr(0xD0)
             else:
                 if player == 'bottom':
-                    board[row][col] = chr(int('0xDB', 16) + (stack_height-5))
+                    board[row][col] = chr(0xDB + (stack_height-5))
                 else:
-                    board[row][col] = chr(int('0xD0', 16) + (stack_height-5))
+                    board[row][col] = chr(0xD0 + (stack_height-5))
 
                 break
 
@@ -93,21 +93,21 @@ def set_pips(position, player, stack_height, mirror, board):
             if position % 2 == 0:
                 # white points
                 if player == 'bottom':
-                    board[row+(stack_elem*direction)][col] = chr(int('0x55', 16) + top_or_bottom + stack_elem)
+                    board[row+(stack_elem*direction)][col] = chr(0x55 + top_or_bottom + stack_elem)
                 else:
-                    board[row+(stack_elem*direction)][col] = chr(int('0x4B', 16) + top_or_bottom + stack_elem)
+                    board[row+(stack_elem*direction)][col] = chr(0x4B + top_or_bottom + stack_elem)
             else:
                 # black points
                 if player == 'bottom':
-                    board[row+(stack_elem*direction)][col] = chr(int('0x5A', 16) + top_or_bottom + stack_elem)
+                    board[row+(stack_elem*direction)][col] = chr(0x5A + top_or_bottom + stack_elem)
                 else:
-                    board[row+(stack_elem*direction)][col] = chr(int('0x50', 16) + top_or_bottom + stack_elem)
+                    board[row+(stack_elem*direction)][col] = chr(0x50 + top_or_bottom + stack_elem)
 
         else:
             if player == 'bottom':
-                board[row+(4*direction)][col] = chr(int('0xDB', 16) + (stack_height-5))
+                board[row+(4*direction)][col] = chr(0xDB + (stack_height-5))
             else:
-                board[row+(4*direction)][col] = chr(int('0xD0', 16) + (stack_height-5))
+                board[row+(4*direction)][col] = chr(0xD0 + (stack_height-5))
 
             break
 
@@ -129,7 +129,7 @@ def set_cube(value, position, mirror, board):
     else:
         cube_col = 0
 
-    board[row][cube_col] = chr(int('0x21', 16) + int(value))
+    board[row][cube_col] = chr(0x21 + value)
 
 def set_turn(turn, dice, board):
     turn = int(turn)
@@ -145,9 +145,9 @@ def set_turn(turn, dice, board):
             pass
         return
 
-    roll1, roll2 = dice[0], dice[1]
+    roll1, roll2 = int(dice[0]), int(dice[1])
 
-    if roll1 == '0' and roll2 == '0':
+    if roll1 == 0 and roll2 == 0:
         # player is to roll or double
         return
 
@@ -155,12 +155,13 @@ def set_turn(turn, dice, board):
     if turn == 1:
         # bottom players turn, right side of the board
         col1, col2 = 12, 15
-        roll1 = chr(int('0x37', 16) + int(roll1))
-        roll2 = chr(int('0x37', 16) + int(roll2))
+        roll1 = chr(0x37 + roll1)
+        roll2 = chr(0x37 + roll2)
     else:
         # top players turn, left side of the board
         col1, col2 = 3, 6
-        # TODO set roll1/roll2?
+        roll1 = chr(0x30 + roll1)
+        roll2 = chr(0x30 + roll2)
 
     board[row][col1] = roll1
     board[row][col2] = roll2
@@ -200,11 +201,11 @@ def set_bearoff(pips, mirror, board):
 
         # draw full stacks
         for j in range(full):
-            board[row+(j*direction)][bearoff_col] = chr(int('0xE6', 16) + diff)
+            board[row+(j*direction)][bearoff_col] = chr(0xE6 + diff)
 
         # draw the remaining stack, if there is one
         if part:
-            board[row+(full*direction)][bearoff_col] = chr(int('0xE6', 16) + diff + (5-part))
+            board[row+(full*direction)][bearoff_col] = chr(0xE6 + diff + (5-part))
 
 
 
