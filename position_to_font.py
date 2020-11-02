@@ -64,6 +64,8 @@ def set_pips(position, player, stack_height, mirror, board):
 
     top_or_bottom = 32 if direction == -1 else 0
 
+    mirror = 5 if mirror else 0
+
     for stack_elem in range(stack_height):
 
         if col == 9:
@@ -85,15 +87,15 @@ def set_pips(position, player, stack_height, mirror, board):
             if position % 2 == 0:
                 # white points
                 if player == 'bottom':
-                    board[row+(stack_elem*direction)][col] = 0x55 + top_or_bottom + stack_elem
+                    board[row+(stack_elem*direction)][col] = 0x55 + mirror + top_or_bottom + stack_elem
                 else:
-                    board[row+(stack_elem*direction)][col] = 0x4B + top_or_bottom + stack_elem
+                    board[row+(stack_elem*direction)][col] = 0x4B + mirror + top_or_bottom + stack_elem
             else:
                 # black points
                 if player == 'bottom':
-                    board[row+(stack_elem*direction)][col] = 0x5A + top_or_bottom + stack_elem
+                    board[row+(stack_elem*direction)][col] = 0x5A - mirror + top_or_bottom + stack_elem
                 else:
-                    board[row+(stack_elem*direction)][col] = 0x50 + top_or_bottom + stack_elem
+                    board[row+(stack_elem*direction)][col] = 0x50 - mirror + top_or_bottom + stack_elem
 
         else:
             if player == 'bottom':
