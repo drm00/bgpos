@@ -1,7 +1,5 @@
 #!/usr/bin/env python3
 
-import sys
-
 # extreme gammon position id has 51 characters (?)
 # documentation:
 # XGID: http://www.extremegammon.com/extremegammon2.pdf, pp. 146-147
@@ -132,7 +130,7 @@ def _parse_matchid(matchid):
 def parse_id(id):
     if not _is_valid(id):
         print("ID not valid!")
-        sys.exit(1)
+        return None, None, None
 
     positionid, matchid = id.split(':', 1)
     pips = _parse_positionid(positionid)

@@ -10,14 +10,6 @@ import xg
 # TODO
 # combine pips, match and safe_id into one datastructure
 
-XGID = '-a-B--E-B-a-dDB--b-bcb----:1:1:-1:63:0:0:0:3:8'
-XGID = '-b--B-C-CA-AdC-a-c-e-A--A-:3:-1:1:62:0:0:3:0:10'
-XGID = 'g-----E-C---fE-----b----B-:1:1:1:22:0:0:3:0:10'
-xg_to_gnubgids = {
-    'aFBBB-A---A-------A---c-b-:1:1:1:21:0:0:3:0:10': 'cwAAoN82IUAAAA:UQkFAAAAAAAA',
-}
-# AADABwEA2rYAAA:VAkSAAAAAAAA
-
 # board consists of 11•19 cells
 # view codepoints with xfd -fa 'eXtreme Gammon'
 board = [
@@ -209,7 +201,7 @@ def set_bearoff(pips, mirror, board):
 
 
 
-def position_to_png(position, safe_id, metatext):
+def position_to_png(position, filename, metatext):
     from PIL import Image, ImageDraw, ImageFont
 
     xg_font_size = 40
@@ -220,10 +212,10 @@ def position_to_png(position, safe_id, metatext):
     d = ImageDraw.Draw(img)
 
     d.text((0,0), position, font=xg_font, spacing=0, fill='black')
-    if len(metatext):
+    if metatext:
         d.text((xg_font_size, 16*xg_font_size), metatext, font=text_font, fill='black')
 
-    img.save(f"{safe_id}.png")
+    img.save(f"{filename}.png")
 
 
 if __name__ == "__main__":
@@ -234,16 +226,17 @@ if __name__ == "__main__":
     parser.add_argument('--output', choices=['text', 'png', 'pdf'], default='text', help='Create position as text, png or pdf.')
     parser.add_argument('--convert', action='store_true', help='Convert gnubgid to xgid and vice versa.')
     args = parser.parse_args()
-    print(args)
-    print(args.gameid)
 
     if len(args.gameid) == 14 + 1 + 12:
         pips, match, safe_id = gnubg.parse_id(args.gameid)
+        if match is None:
+            sys.exit(1)
         metatext = '' # TODO
-        print(f"%{match}")
         id_type = 'gnubg'
     else:
         pips, match, safe_id = xg.parse_id(args.gameid)
+        if pips is None:
+            sys.exit(1)
         metatext = '' # TODO
         id_type = 'xg'
 
@@ -269,8 +262,6 @@ if __name__ == "__main__":
     set_bearoff(pips, args.mirror, board)
     set_cube(match["cube_exponent"], match["cube_position"], args.mirror, board)
     set_turn(match["turn"], match["dice"], board)
-
-    #print(cube_value, cube_position, turn, dice, score1, score2, crawford_jacoby, match_length, max_cube)
 
     position = '\n'.join([''.join(s) for s in board])
 

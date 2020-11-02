@@ -1,14 +1,13 @@
 #!/usr/bin/env python3
 
 import base64
-import sys
 
 # GnuBG Position ID: https://www.gnu.org/software/gnubg/manual/html_node/A-technical-description-of-the-Position-ID.html#A-technical-description-of-the-Position-ID
 # GnuBG Position ID (code): https://cvs.savannah.gnu.org/viewvc/gnubg/gnubg/positionid.c?view=log
 # GnuBG Match ID: https://www.gnu.org/software/gnubg/manual/html_node/A-technical-description-of-the-Match-ID.html#A-technical-description-of-the-Match-ID
 # GnuBG Match ID (code): https://cvs.savannah.gnu.org/viewvc/gnubg/gnubg/matchid.c?view=log
 
-def _pips_to_gnubgid(pips):
+def _pips_to_positionid(pips):
     # assemble position id
     # player on roll is bottom player
     top = []
@@ -57,7 +56,7 @@ def _match_to_matchid(match):
     return 'TODO'
 
 def create_id(pips, match):
-    return _pips_to_gnubgid(pips) + ':' + _match_to_matchid(match)
+    return _pips_to_positionid(pips) + ':' + _match_to_matchid(match)
 
 def cube_exponent_to_gnubg(cube_exponent):
     if cube_exponent > 15:
@@ -220,7 +219,7 @@ def _parse_matchid(matchid):
         cube_position = 1 # player 1 / bottom player
     else:
         print(f"ERROR: illegal cube position: {cube_position}")
-        sys.exit(1)
+        return None
 
     if player_on_roll == 0:
         xg_turn = -1 # player0, top player
@@ -245,7 +244,7 @@ def _parse_matchid(matchid):
         dice = str(dice1) + str(dice2)
     else:
         print(f"ERROR: illegal dice: {dice1}/{dice2}")
-        sys.exit(1)
+        return None
 
     jacoby = not bool(jacoby)
 
@@ -287,4 +286,3 @@ def parse_id(id):
     safe_id = _create_safe_ids(positionid) + ':' + _create_safe_ids(matchid)
 
     return pips, match, safe_id
-
