@@ -242,7 +242,12 @@ if __name__ == "__main__":
 
     if args.mirror:
         # reverse top
-        board[0][2] = 0xAD
+        # the font contains 0xAD, but that encodes the 'soft-hyphen',
+        # which is not handled well in latex, it seems. Luckily, the
+        # font contains the same image at another code point, 0xFE,
+        # so just use that.
+        # more info on soft hyphen: http://archives.miloush.net/michkap/archive/2006/09/02/736881.html
+        board[0][2] = 0xFE
         board[0][6] = 0xAE
 
         # reverse bottom
