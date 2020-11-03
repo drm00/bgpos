@@ -206,7 +206,7 @@ def position_to_png(position, filename, metatext, show):
     if metatext:
         d.text((xg_font_size, 16*xg_font_size), metatext, font=text_font, fill='black')
 
-    img.save(f"{filename}.png")
+    img.save(filename)
 
     if show:
         img.show()
@@ -220,6 +220,7 @@ if __name__ == "__main__":
     parser.add_argument('--output', choices=['text', 'png', 'pdf'], default='text', help='Create position as text, png or pdf.')
     parser.add_argument('--show', action='store_true', help='Show png after creation - only valid with --output=png.')
     parser.add_argument('--convert', action='store_true', help='Convert gnubgid to xgid and vice versa.')
+    parser.add_argument('--prefix', help='Prefix that gets added before the id in the output filename - only useful with --output=png/pdf')
     args = parser.parse_args()
 
     if len(args.gameid) == 14 + 1 + 12:
@@ -265,13 +266,18 @@ if __name__ == "__main__":
 
     position = '\n'.join([''.join(map(chr, row)) for row in board])
 
+    if args.output.startswith('p') and args.prefix:
+        filename = f"{args.prefix}_{safe_id}.{args.output}"
+    else:
+        filename = f"{safe_id}.{args.output}"
+
     if args.output == 'png':
-        position_to_png(position, safe_id, metatext, args.show)
+        position_to_png(position, filename, metatext, args.show)
     elif args.output == 'pdf':
         from position_to_anki import positions_to_tex, tex_to_pdf
         import shutil
         tex = positions_to_tex([position])
         tempfile = tex_to_pdf(tex)
-        shutil.move(f"{tempfile}.pdf", f"{safe_id}.pdf")
+        shutil.move(f"{tempfile}.pdf", filename)
     else:
         print(position)
