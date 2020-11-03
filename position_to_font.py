@@ -192,7 +192,7 @@ def set_bearoff(pips, mirror, board):
 
 
 
-def position_to_png(position, filename, metatext):
+def position_to_png(position, filename, metatext, show):
     from PIL import Image, ImageDraw, ImageFont
 
     xg_font_size = 40
@@ -208,6 +208,9 @@ def position_to_png(position, filename, metatext):
 
     img.save(f"{filename}.png")
 
+    if show:
+        img.show()
+
 
 if __name__ == "__main__":
 
@@ -215,6 +218,7 @@ if __name__ == "__main__":
     parser.add_argument('gameid', help='GnuBG ID or XGID.')
     parser.add_argument('--mirror', action='store_true', help='Create a mirrored position with the checkers beared off to the left.')
     parser.add_argument('--output', choices=['text', 'png', 'pdf'], default='text', help='Create position as text, png or pdf.')
+    parser.add_argument('--show', action='store_true', help='Show png after creation - only valid with --output=png.')
     parser.add_argument('--convert', action='store_true', help='Convert gnubgid to xgid and vice versa.')
     args = parser.parse_args()
 
@@ -262,7 +266,7 @@ if __name__ == "__main__":
     position = '\n'.join([''.join(map(chr, row)) for row in board])
 
     if args.output == 'png':
-        position_to_png(position, safe_id, metatext)
+        position_to_png(position, safe_id, metatext, args.show)
     elif args.output == 'pdf':
         from position_to_anki import positions_to_tex, tex_to_pdf
         import shutil
