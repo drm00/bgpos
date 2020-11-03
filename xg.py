@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+import player
+
 # extreme gammon position id has 51 characters (?)
 # documentation:
 # XGID: http://www.extremegammon.com/extremegammon2.pdf, pp. 146-147
@@ -94,7 +96,7 @@ def _parse_positionid(positionid):
         stack_height = _pipcount_for_point(c)
         if stack_height == 0:
             continue
-        player = 'top' if c.islower() else 'bottom'
+        player = Player.TOP if c.islower() else Player.BOTTOM
         pips[position] = {
             'stack': stack_height,
             'player': player,

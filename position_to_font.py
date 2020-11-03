@@ -5,6 +5,7 @@ import base64
 import sys
 
 import gnubg
+from player import Player
 import xg
 
 # TODO
@@ -70,7 +71,7 @@ def set_pips(position, player, stack_height, mirror, board):
 
         if col == 9:
             # checkers on the bar
-            c = 0xDB if player == 'bottom' else 0xD0
+            c = 0xDB if player == player.BOTTOM else 0xD0
             if stack_elem <= 4:
                 board[row+((4-stack_elem)*direction)][col] = c
             else:
@@ -81,17 +82,17 @@ def set_pips(position, player, stack_height, mirror, board):
         elif stack_elem <= 4:
             if position % 2 == 0:
                 # white points
-                c = 0x55 if player == 'bottom' else 0x4B
+                c = 0x55 if player == player.BOTTOM else 0x4B
                 c += mirror
             else:
                 # black points
-                c = 0x5A if player == 'bottom' else 0x50
+                c = 0x5A if player == player.BOTTOM else 0x50
                 c -= mirror
 
             board[row+(stack_elem*direction)][col] = c + top_or_bottom + stack_elem
 
         else:
-            c = 0xDB if player == 'bottom' else 0xD0
+            c = 0xDB if player == player.BOTTOM else 0xD0
             board[row+(4*direction)][col] = c + (stack_height-5)
 
             break
@@ -155,10 +156,7 @@ def set_bearoff(pips, mirror, board):
     # collect total amount of checkers on the board for each player
     checkers = [0, 0]
     for position, data in pips.items():
-        if data['player'] == 'top':
-            checkers[0] += data['stack']
-        else:
-            checkers[1] += data['stack']
+        checkers[data['player'].value] += data['stack']
 
     checkers = [15-checkers[0], 15-checkers[1]]
 
@@ -261,7 +259,7 @@ if __name__ == "__main__":
     set_cube(match["cube_exponent"], match["cube_position"], args.mirror, board)
     set_turn(match["turn"], match["dice"], board)
 
-    position = '\n'.join([''.join(map(chr, s)) for s in board])
+    position = '\n'.join([''.join(map(chr, row)) for row in board])
 
     if args.output == 'png':
         position_to_png(position, safe_id, metatext)

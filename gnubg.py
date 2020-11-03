@@ -2,6 +2,8 @@
 
 import base64
 
+from player import Player
+
 # GnuBG Position ID: https://www.gnu.org/software/gnubg/manual/html_node/A-technical-description-of-the-Position-ID.html#A-technical-description-of-the-Position-ID
 # GnuBG Position ID (code): https://cvs.savannah.gnu.org/viewvc/gnubg/gnubg/positionid.c?view=log
 # GnuBG Match ID: https://www.gnu.org/software/gnubg/manual/html_node/A-technical-description-of-the-Match-ID.html#A-technical-description-of-the-Match-ID
@@ -17,7 +19,7 @@ def _pips_to_positionid(pips):
     # pos. 25 is the bar of the bottom player
     for position in range(1, 26):
 
-        if position not in pips or pips[position]['player'] != 'bottom':
+        if position not in pips or pips[position]['player'] != Player.BOTTOM:
             bottom.append('0')
             continue
 
@@ -29,7 +31,7 @@ def _pips_to_positionid(pips):
     # pos. 0 is the bar of the top player
     for position in range(24, -1, -1):
 
-        if position not in pips or pips[position]['player'] != 'top':
+        if position not in pips or pips[position]['player'] != Player.TOP:
             top.append('0')
             continue
 
@@ -102,7 +104,7 @@ def _bitstring_to_pips(bitstring):
     pips = {}
     pos = 24
     step = -1
-    player = 'top'
+    player = Player.TOP
 
     for i, bit in enumerate(bitstring):
 
@@ -110,7 +112,7 @@ def _bitstring_to_pips(bitstring):
             # switch to bottom player
             pos = 1
             step = 1
-            player = 'bottom'
+            player = Player.BOTTOM
 
         if bit == '0':
             pos += step
