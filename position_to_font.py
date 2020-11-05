@@ -41,11 +41,6 @@ def set_pips(position, player, stack_height, mirror, board):
     if mirror:
         columns.reverse()
 
-    if position <= 12:
-        row = 11
-    else:
-        row = 1
-
     if position == 0 or position == 25:
         # bar
         col = 9
@@ -58,43 +53,38 @@ def set_pips(position, player, stack_height, mirror, board):
 
         col = columns[index]
 
-    if row == 1:
+    # positions 13-24 are at the top, 1-12 at the bottom
+    # build checker stacks on points down from above or up from below
+    if position > 12:
+        row = 1
         direction = 1
+        top_or_bottom = 0
     else:
+        row = 11
         direction = -1
+        top_or_bottom = 32
 
-    top_or_bottom = 32 if direction == -1 else 0
-
-    mirror = 5 if mirror else 0
+    point_color = position % 2 # 0 or 1
+    step = 10 * player.value # 10 or 0
+    mirror = 5 * int(mirror) # 5 or 0
+    if point_color == 1:
+        mirror *= -1 # -5 or 0 for black points
+    single_checker = 0xD0 + (player.value * 0x0B)
+    # white points on even positions, black points on odd positions
+    checker_on_point = 0x4B + step + mirror + point_color*5
 
     for stack_elem in range(stack_height):
-
         if col == 9:
             # checkers on the bar
-            c = 0xDB if player == player.BOTTOM else 0xD0
             if stack_elem <= 4:
-                board[row+((4-stack_elem)*direction)][col] = c
+                board[row+((4-stack_elem)*direction)][col] = single_checker
             else:
-                board[row][col] = c + (stack_height-5)
-
+                board[row][col] = single_checker + (stack_height-5)
                 break
-
         elif stack_elem <= 4:
-            if position % 2 == 0:
-                # white points
-                c = 0x55 if player == player.BOTTOM else 0x4B
-                c += mirror
-            else:
-                # black points
-                c = 0x5A if player == player.BOTTOM else 0x50
-                c -= mirror
-
-            board[row+(stack_elem*direction)][col] = c + top_or_bottom + stack_elem
-
+            board[row+(stack_elem*direction)][col] = checker_on_point + top_or_bottom + stack_elem
         else:
-            c = 0xDB if player == player.BOTTOM else 0xD0
-            board[row+(4*direction)][col] = c + (stack_height-5)
-
+            board[row+(4*direction)][col] = single_checker + (stack_height-5)
             break
 
 def set_cube(value, position, mirror, board):
@@ -159,28 +149,22 @@ def set_bearoff(pips, mirror, board):
         checkers[data['player'].value] += data['stack']
 
     checkers = [15-checkers[0], 15-checkers[1]]
+    bearoff_col = 0 if mirror else 18
 
-    for i, stack_height in enumerate(checkers):
+    for player, stack_height in enumerate(checkers):
         if stack_height == 0:
             continue
 
         # a full stack of beared off checkers has height 5
         full, part = divmod(stack_height, 5)
-        if i == 0:
-            # top player
+        if player == Player.TOP:
             row = 1
             direction = 1
             diff = 0
         else:
-            # bottom player
             row = 11
             direction = -1
             diff = 5
-
-        if mirror:
-            bearoff_col = 0
-        else:
-            bearoff_col = 18
 
         # draw full stacks
         for j in range(full):
