@@ -87,7 +87,7 @@ def set_pips(position, player, stack_height, mirror, board):
             board[row+(4*direction)][col] = single_checker + (stack_height-5)
             break
 
-def set_cube(value, position, mirror, board):
+def set_cube(cube_exponent, position, mirror, board):
 
     if position == -1:
         row = 1
@@ -96,8 +96,9 @@ def set_cube(value, position, mirror, board):
     else:
         row = 6
 
-    if value == 0:
-        value = 6
+    if cube_exponent == 0:
+        # place cube with value 2^6 = 64 in the middle
+        cube_exponent = 6
         row = 6
 
     if mirror:
@@ -105,10 +106,9 @@ def set_cube(value, position, mirror, board):
     else:
         cube_col = 0
 
-    board[row][cube_col] = 0x21 + value
+    board[row][cube_col] = 0x21 + cube_exponent
 
 def set_turn(turn, dice, board):
-    turn = int(turn)
     if len(dice) == 1:
         if dice == 'D':
             # player has doubled
@@ -128,16 +128,16 @@ def set_turn(turn, dice, board):
         return
 
     row = 6
-    if turn == 1:
+    if int(turn) == 1:
         # bottom players turn, right side of the board
         col1, col2 = 12, 15
-        roll1 = 0x37 + roll1
-        roll2 = 0x37 + roll2
+        roll1 += 0x37
+        roll2 += 0x37
     else:
         # top players turn, left side of the board
         col1, col2 = 3, 6
-        roll1 = 0x30 + roll1
-        roll2 = 0x30 + roll2
+        roll1 += 0x30
+        roll2 += 0x30
 
     board[row][col1] = roll1
     board[row][col2] = roll2
